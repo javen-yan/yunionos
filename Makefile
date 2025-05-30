@@ -49,7 +49,7 @@ pxelinux-update:
 	DOCKER_BUILDKIT=1 docker build -f Dockerfile.pxelinux --output ./pxelinux .
 
 buildroot-image:
-	docker build -t $(BUILD_ROOT_IMG) -f Dockerfile.buildroot-$(BUILD_ROOT_VERSION) .
+	docker build -t $(BUILD_ROOT_IMG) -f Dockerfile.buildroot .
 
 docker-buildroot:
 	#rm -rf $(BUILD_ROOT_OUTPUT_DIR)/target
