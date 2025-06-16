@@ -25,6 +25,10 @@ KERNEL_ARM_6_DEB ?= linux-image-6.1.0-32-arm64_6.1.129-1_arm64.deb
 
 KERNEL_AMD64_6_DEB ?= linux-image-6.1.0-32-amd64_6.1.129-1_amd64.deb
 
+KERNEL_ARM_6_RPM ?= kernel-6.6.0-72.0.0.76.oe2403sp1.aarch64.rpm
+
+KERNEL_AMD64_6_RPM ?= kernel-6.6.0-72.0.0.76.oe2403sp1.x86_64.rpm
+
 # download-kernel-rpm:
 # 	wget -c https://mirror.rackspace.com/elrepo/kernel/el7/x86_64/RPMS/$(KERNEL_5_14_15_RPM)
 
@@ -45,6 +49,14 @@ download-kernel-amd64-6-deb:
 
 download-kernel-6-deb: download-kernel-arm-6-deb download-kernel-amd64-6-deb
 
+download-kernel-arm-6-rpm:
+	wget -c https://mirrors.aliyun.com/openeuler/openEuler-24.03-LTS-SP1/OS/aarch64/Packages/$(KERNEL_ARM_6_RPM)
+
+download-kernel-amd64-6-rpm:
+	wget -c https://mirrors.aliyun.com/openeuler/openEuler-24.03-LTS-SP1/OS/x86_64/Packages/$(KERNEL_AMD64_6_RPM)
+
+download-kernel-6-rpm: download-kernel-arm-6-rpm download-kernel-amd64-6-rpm
+
 pxelinux-update:
 	DOCKER_BUILDKIT=1 docker build -f Dockerfile.pxelinux --output ./pxelinux .
 
@@ -64,16 +76,16 @@ BUNDLE_BM_CMD = ./bin/mosbundle -f ./firmware-bnx2x_20210315-3_all.deb  -r ./rem
 BUNDLE_VM_CMD = ./bin/mosbundle -r ./vm_remove_files_list.txt -m ./vm_etc_modules
 
 bundle-pxe:
-	 $(BUNDLE_BM_CMD) -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR) pxe
+	 $(BUNDLE_BM_CMD) -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_RPM) $(BUNDLE_OUTPUT_DIR) pxe
 
 bundle-pxe-vm:
-	 $(BUNDLE_VM_CMD) ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR_VM) pxe
+	 $(BUNDLE_VM_CMD) ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_RPM) $(BUNDLE_OUTPUT_DIR_VM) pxe
 
 bundle-pxe-arm64:
-	ARCH=aarch64 $(BUNDLE_BM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64) pxe
+	ARCH=aarch64 $(BUNDLE_BM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_RPM) $(BUNDLE_OUTPUT_DIR_ARM64) pxe
 
 bundle-pxe-arm64-vm:
-	ARCH=aarch64 $(BUNDLE_VM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64_VM) pxe
+	ARCH=aarch64 $(BUNDLE_VM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_RPM) $(BUNDLE_OUTPUT_DIR_ARM64_VM) pxe
 
 docker-bundle:
 	./scripts/bundle-run.sh
