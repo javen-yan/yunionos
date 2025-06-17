@@ -40,88 +40,88 @@ KERNEL_AMD64_6_DEB ?= linux-image-6.1.0-37-amd64_6.1.140-1_amd64.deb
 #       wget -c https://iso.yunion.cn/3.7/rpms/packages/kernel/kernel-3.10.0-1160.6.1.el7.yn20201125.x86_64.rpm
 
 download-debian-firmware:
-        wget -c https://mirrors.aliyun.com/debian/pool/non-free/f/firmware-nonfree/firmware-bnx2x_20210315-3_all.deb
+	wget -c https://mirrors.aliyun.com/debian/pool/non-free/f/firmware-nonfree/firmware-bnx2x_20210315-3_all.deb
 
 download-kernel-arm-6-deb:
-        wget -c https://mirrors.aliyun.com/debian/pool/main/l/linux-signed-arm64/$(KERNEL_ARM_6_DEB)
+	wget -c https://mirrors.aliyun.com/debian/pool/main/l/linux-signed-arm64/$(KERNEL_ARM_6_DEB)
 
 download-kernel-amd64-6-deb:
-        wget -c https://mirrors.aliyun.com/debian/pool/main/l/linux-signed-amd64/$(KERNEL_AMD64_6_DEB)
+	wget -c https://mirrors.aliyun.com/debian/pool/main/l/linux-signed-amd64/$(KERNEL_AMD64_6_DEB)
 
 download-kernel-6-deb: download-kernel-arm-6-deb download-kernel-amd64-6-deb
 
 pxelinux-update:
-        DOCKER_BUILDKIT=1 docker build -f Dockerfile.pxelinux --output ./pxelinux .
+	DOCKER_BUILDKIT=1 docker build -f Dockerfile.pxelinux --output ./pxelinux .
 
 buildroot-image:
-        docker build -t $(BUILD_ROOT_IMG) -f Dockerfile.buildroot .
+	docker build -t $(BUILD_ROOT_IMG) -f Dockerfile.buildroot .
 
 docker-buildroot:
-        #rm -rf $(BUILD_ROOT_OUTPUT_DIR)/target
-        #find $(BUILD_ROOT_OUTPUT_DIR) -name ".stamp_target_installed" | xargs rm -rf
-        ./scripts/buildroot-run.sh make
+	#rm -rf $(BUILD_ROOT_OUTPUT_DIR)/target
+	#find $(BUILD_ROOT_OUTPUT_DIR) -name ".stamp_target_installed" | xargs rm -rf
+	./scripts/buildroot-run.sh make
 
 docker-buildroot-arm64:
-        TARGET_ARCH=aarch64 ./scripts/buildroot-run.sh make
+	TARGET_ARCH=aarch64 ./scripts/buildroot-run.sh make
 
 BUNDLE_BM_CMD = ./bin/mosbundle -f ./firmware-bnx2x_20210315-3_all.deb  -r ./remove_files_list.txt
 
 BUNDLE_VM_CMD = ./bin/mosbundle -r ./vm_remove_files_list.txt -m ./vm_etc_modules
 
 bundle-pxe:
-         $(BUNDLE_BM_CMD) -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR) pxe
+	$(BUNDLE_BM_CMD) -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR) pxe
 
 bundle-pxe-vm:
-         $(BUNDLE_VM_CMD) ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR_VM) pxe
+	$(BUNDLE_VM_CMD) ./output/images/rootfs.tar ./$(KERNEL_AMD64_6_DEB) $(BUNDLE_OUTPUT_DIR_VM) pxe
 
 bundle-pxe-arm64:
-        ARCH=aarch64 $(BUNDLE_BM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64) pxe
+	ARCH=aarch64 $(BUNDLE_BM_CMD) -e ./extra_modules ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64) pxe
 
 bundle-pxe-arm64-vm:
-        ARCH=aarch64 $(BUNDLE_VM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64_VM) pxe
+	ARCH=aarch64 $(BUNDLE_VM_CMD) ./output_arm64/images/rootfs.tar ./$(KERNEL_ARM_6_DEB) $(BUNDLE_OUTPUT_DIR_ARM64_VM) pxe
 
 docker-bundle:
-        ./scripts/bundle-run.sh
+	./scripts/bundle-run.sh
 
 docker-bundle-arm64:
-        TARGET_ARCH=aarch64 ./scripts/bundle-run.sh
+	TARGET_ARCH=aarch64 ./scripts/bundle-run.sh
 
 docker-bundle-vm-x86_64:
-        FOR_VM=true ./scripts/bundle-run.sh
+	FOR_VM=true ./scripts/bundle-run.sh
 
 docker-bundle-vm-arm64:
-        FOR_VM=true TARGET_ARCH=aarch64 ./scripts/bundle-run.sh
+	FOR_VM=true TARGET_ARCH=aarch64 ./scripts/bundle-run.sh
 
 docker-bundle-vm: docker-bundle-vm-x86_64 docker-bundle-vm-arm64
 
 docker-bundle-all: docker-bundle docker-bundle-arm64 docker-bundle-vm
 
 bundle-iso:
-        ./bin/mosbundle -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_5_14_15_RPM) $(BUNDLE_OUTPUT_DIR) iso
+	./bin/mosbundle -e ./extra_modules ./output/images/rootfs.tar ./$(KERNEL_5_14_15_RPM) $(BUNDLE_OUTPUT_DIR) iso
 
 make-rpm:
-        ./bin/makerpm $(BUNDLE_OUTPUT_DIR)
+	./bin/makerpm $(BUNDLE_OUTPUT_DIR)
 
 docker-make-rpm:
-        docker run --rm \
-                --name docker-centos-build-baremetal \
-                -v $(CURDIR):/data \
-                registry.cn-beijing.aliyuncs.com/yunionio/centos-build:1.1-4 \
-                /bin/bash -c "make -C /data make-rpm"
+	docker run --rm \
+		--name docker-centos-build-baremetal \
+		-v $(CURDIR):/data \
+		registry.cn-beijing.aliyuncs.com/yunionio/centos-build:1.1-4 \
+		/bin/bash -c "make -C /data make-rpm"
 
 docker-yunionos-image:
-        docker buildx build --platform linux/arm64,linux/amd64 --push \
-                -t $(REGISTRY_HOST)/yunionos:$(YUNIONOS_VERSION) -f ./Dockerfile.yunionos .
+	docker buildx build --platform linux/arm64,linux/amd64 --push \
+		-t $(REGISTRY_HOST)/yunionos:$(YUNIONOS_VERSION) -f ./Dockerfile.yunionos .
 
 docker-yunionos-image-vm:
-        docker buildx build --platform linux/arm64,linux/amd64 --push \
-                -t $(REGISTRY_HOST)/yunionos:$(YUNIONOS_VERSION_VM) -f ./Dockerfile.yunionos-vm .
+	docker buildx build --platform linux/arm64,linux/amd64 --push \
+		-t $(REGISTRY_HOST)/yunionos:$(YUNIONOS_VERSION_VM) -f ./Dockerfile.yunionos-vm .
 
 docker-yunionos-image-all: docker-buildroot docker-buildroot-arm64 docker-bundle-all docker-yunionos-image docker-yunionos-image-vm
 
 extract-bundle-rootfs:
-        sudo make -C images extract-bundle-rootfs-amd64
-        sudo make -C images extract-bundle-rootfs-arm64
+	sudo make -C images extract-bundle-rootfs-amd64
+	sudo make -C images extract-bundle-rootfs-arm64
 
 docker-yunion-rootfs-image: extract-bundle-rootfs
-        sudo make -C images docker-yunion-rootfs-image
+	sudo make -C images docker-yunion-rootfs-image

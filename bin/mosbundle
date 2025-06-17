@@ -197,6 +197,7 @@ echo "Kernel version $kver"
 if [ -n "$extra_modules_dir" ]; then
   dst_mod_dir="${kernel_d}/lib/modules/${kver}/extra"
   echo "Copy $extra_modules_dir to $dst_mod_dir"
+  mkdir -p "$dst_mod_dir" || fail "failed to create extra modules directory"
   cp $extra_modules_dir/**/*.ko $dst_mod_dir ||
    	  fail "failed to copy extract modules to $dst_mod_dir"
 fi
