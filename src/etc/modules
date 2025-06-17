@@ -58,6 +58,7 @@ mptspi
 nvme
 nvme-core
 shannon
+hiraid
 i40e
 sg
 # usb-storage
